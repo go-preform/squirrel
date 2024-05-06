@@ -6,7 +6,7 @@ Bug fixes will still be merged (slowly). Bug reports are welcome, but I will not
 # Squirrel - fluent SQL generator for Go
 
 ```go
-import "github.com/Masterminds/squirrel"
+import "github.com/go-preform/squirrel"
 ```
 
 
