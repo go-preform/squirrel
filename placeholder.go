@@ -3,6 +3,7 @@ package squirrel
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -49,7 +50,7 @@ func (questionFormat) debugPlaceholder() string {
 type dollarFormat struct{}
 
 func (dollarFormat) ReplacePlaceholders(sql string) (string, error) {
-	return replacePositionalPlaceholders(sql, "$")
+	return replacePositionalPlaceholdersFast(sql, "$")
 }
 
 func (dollarFormat) debugPlaceholder() string {
@@ -111,4 +112,28 @@ func replacePositionalPlaceholders(sql, prefix string) (string, error) {
 
 	buf.WriteString(sql)
 	return buf.String(), nil
+}
+
+func replacePositionalPlaceholdersFast(sql, prefix string) (string, error) {
+	var (
+		parts = strings.Split(sql, "?")
+		l     = len(parts)
+		j     = 0
+	)
+	if l == 1 {
+		return sql, nil
+	}
+	for i := 0; i < l; i++ {
+		if parts[i] == "" {
+			if i != l-1 {
+				parts[i] = "?"
+			}
+		} else if i != l-1 {
+			if parts[i+1] != "" {
+				parts[i] = parts[i] + prefix + strconv.Itoa(j+1)
+				j++
+			}
+		}
+	}
+	return strings.Join(parts, ""), nil
 }
