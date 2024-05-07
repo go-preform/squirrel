@@ -123,15 +123,19 @@ func replacePositionalPlaceholdersFast(sql, prefix string) (string, error) {
 	if l == 1 {
 		return sql, nil
 	}
-	for i := 0; i < l; i++ {
-		if parts[i] == "" {
-			if i != l-1 {
-				parts[i] = "?"
-			}
-		} else if i != l-1 {
-			if parts[i+1] != "" {
-				parts[i] = parts[i] + prefix + strconv.Itoa(j+1)
+	for i := 1; i < l; i++ {
+		if parts[i] != "" {
+			if parts[i-1] != "" {
+				parts[i] = prefix + strconv.Itoa(j+1) + parts[i]
 				j++
+			} else {
+				parts[i] = "?" + parts[i]
+			}
+		} else if i == l-1 {
+			if parts[i-1] == "" {
+				parts[i] = "?"
+			} else {
+				parts[i] = prefix + strconv.Itoa(j+1)
 			}
 		}
 	}

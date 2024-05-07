@@ -53,6 +53,18 @@ func TestEscapeAtp(t *testing.T) {
 	assert.Equal(t, "SELECT uuid, \"data\" #> '{tags}' AS tags FROM nodes WHERE  \"data\" -> 'tags' ?| array['@p1'] AND enabled = @p2", s)
 }
 
+func TestReplacePositionalPlaceholdersFast(t *testing.T) {
+	var (
+		query string
+		err   error
+	)
+	query, err = replacePositionalPlaceholdersFast("SELECT \"TestBS\".\"id\" AS \"Id\", \"TestBS\".\"a_id\" AS \"AId\", \"TestBS\".\"name\" AS\"Name\", \"TestBS\".\"int4\" AS \"Int4\", \"TestBS\".\"int8\" AS \"Int8\", \"TestBS\".\"float4\"AS \"Float4\", \"TestBS\".\"float8\" AS \"Float8\", \"TestBS\".\"bool\" AS \"Bool\", \"TestBS\".\"text\" AS \"Text\", \"TestBS\".\"time\" AS \"Time\" FROM \"preform_benchmark\".\"test_b\" AS \"TestBS\" WHERE (\"TestBS\".\"a_id\" IN ('??',?,?,?))??", "$")
+	assert.NoError(t, err)
+	assert.Equal(t, "SELECT \"TestBS\".\"id\" AS \"Id\", \"TestBS\".\"a_id\" AS \"AId\", \"TestBS\".\"name\" AS\"Name\", \"TestBS\".\"int4\" AS \"Int4\", \"TestBS\".\"int8\" AS \"Int8\", \"TestBS\".\"float4\"AS \"Float4\", \"TestBS\".\"float8\" AS \"Float8\", \"TestBS\".\"bool\" AS \"Bool\", \"TestBS\".\"text\" AS \"Text\", \"TestBS\".\"time\" AS \"Time\" FROM \"preform_benchmark\".\"test_b\" AS \"TestBS\" WHERE (\"TestBS\".\"a_id\" IN ('?',$1,$2,$3))?", query)
+	query, err = replacePositionalPlaceholdersFast("SELECT * FROM \"preform_benchmark\".\"test_b\" AS \"TestBS\" WHERE \"TestBS\".\"a_id\" > ?", "$")
+	assert.NoError(t, err)
+	assert.Equal(t, "SELECT * FROM \"preform_benchmark\".\"test_b\" AS \"TestBS\" WHERE \"TestBS\".\"a_id\" > $1", query)
+}
 func BenchmarkPlaceholdersArray(b *testing.B) {
 	var count = b.N
 	placeholders := make([]string, count)
